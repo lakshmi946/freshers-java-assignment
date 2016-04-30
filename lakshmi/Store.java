@@ -11,8 +11,7 @@ public class Store{
 	HashMap<Integer, Item> stock;
 	HashMap<Integer, Customer> customers;
 	ArrayList<Item> items;
-
-	// items in the store 
+	
 	{
 		stock = new HashMap<Integer, Item>();
 		customers = new HashMap<Integer, Customer>();
@@ -29,17 +28,16 @@ public class Store{
 		stock.put(11, new Item("eraser3", 3, "eraser"));
 		stock.put(12, new Item("eraser4", 4, "eraser"));
 	}
-
-	//singleton constructor
+	
 	public Store(){
 		// TODO Auto-generated constructor stub
 	}
-	// to add items to the store
+	
 	public void addItem(Item item){
 		
 		stock.put(++stockItemCount, item);
 	}
-	// to remove items in the store
+	
 	public boolean removeItem(int number){
 		
 		Item item = stock.remove(number);
@@ -72,9 +70,27 @@ public class Store{
 	
 	public boolean removeCustomer(int number){
 		
-		// need to write code....
+		Customer customer = customers.remove(number);
+		
+		if(customer == null)
+			return false;
+		
+		HashMap<Integer, Customer> tmpCustomers = new HashMap<Integer, Customer>();
+		for (int i = 1; i < number; i++){
+			tmpCustomers.put(i, customers.get(i));
+		}
+		
+		for (int j = number+1; j < customers.size(); j++){
+			tmpCustomers.put((j-1), customers.get(j));
+		}
+		
+		customers = new HashMap<Integer, Customer>();
+		customers.putAll(tmpCustomers);
+		customerItemCount = stock.size();
+		
+		return true;
 	}
-	// assigining a cart to each customer
+	
 	public void assignCartsToCustomers(){
 		for (int i = 0; i < customers.size(); i++){
 			customers.get(i).getCart();
@@ -85,7 +101,67 @@ public class Store{
 		customers.get(customerNumber).freeCart();
 	}
 	
+	public synchronized void addItemsTOClientCart(int number){
+		
+		Random random = new Random();
+		int count = random.nextInt()*100;
+		if(Math.signum(count) == -1)
+			count = count * -1;
+		
+			Item item;
+			
+			int size = count % 5;
+			size += 1;
+			
+			if(size > stock.size())
+				size = stock.size();
+			if(size != 0 || (stock.size()==0))
+			{
+			  for(int j = 0; j < size; j++){
+				
+				  Customer customer = customers.get(number);
+				  int type = random.nextInt()*1000;
+				  if(Math.signum(type) == -1)
+					  type = type * -1;
+				  type = type % (stock.size());
+				  type += 1;
+				  
+				  /*String typeString = Item.types.get(type);
+				  Integer price = Item.prices.get(typeString);
+				
+				  item = new Item(typeString+(j+1), (j+1), typeString);*/
+				  System.out.println("\nitem: "+type+"retrieved\n");
+				  item = stock.get(type);
+				  item.setPrice(item.getType(), item.getPrice(item.getType()));
+				  customer.addItemTOCart(item);
+				  removeItemFromStock(type);
+			  }
+			}
+			else
+				System.out.println("No items at stock to add to add to customerscart");
+	}
 	
+	public synchronized boolean removeItemFromStock(int number){
+		
+		Item item = stock.remove(number);
+		
+		if(item == null)
+			return false;
+		
+		HashMap<Integer, Item> tmpItems = new HashMap<Integer, Item>();
+		for (int i = 1; i < number; i++){
+			tmpItems.put(i, stock.get(i));
+		}
+		
+		for (int j = number+1; j < stock.size(); j++){
+			tmpItems.put((j-1), stock.get(j));
+		}
+		
+		stock = new HashMap<Integer, Item>();
+		stock.putAll(tmpItems);
+		stockItemCount = stock.size();
+		return true;
+	}
 	
 	//public void removeItemFromClientCart(){
 		
